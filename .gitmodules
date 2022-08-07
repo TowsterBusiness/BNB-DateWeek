@@ -1,0 +1,3 @@
+[submodule "source/towsterFlxUtil"]
+	path = source/towsterFlxUtil
+	url = https://github.com/TowsterBusiness/towsterFlxUtil.git
