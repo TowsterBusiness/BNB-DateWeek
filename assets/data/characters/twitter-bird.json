@@ -2,7 +2,7 @@
     "animation": [
         {
             "prefix": "twitter bird flying0",
-            "name": "idle",
+            "name": "flying",
             "offset": [
                 0,
                 0
@@ -13,7 +13,7 @@
         },
         {
             "prefix": "twitter bird eat0",
-            "name": "idle",
+            "name": "eat",
             "offset": [
                 0,
                 0
@@ -24,7 +24,7 @@
         },
         {
             "prefix": "twitter bird landing0",
-            "name": "idle",
+            "name": "landing",
             "offset": [
                 0,
                 0
@@ -35,7 +35,18 @@
         },
         {
             "prefix": "twitter bird squawk0",
-            "name": "idle",
+            "name": "squawk",
+            "offset": [
+                0,
+                0
+            ],
+            "isLoop": false,
+            "flipX": false,
+            "frameRate": 24
+        },
+        {
+            "prefix": "twitter bird bop0",
+            "name": "bop",
             "offset": [
                 0,
                 0

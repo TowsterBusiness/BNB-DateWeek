@@ -10,7 +10,7 @@ typedef NoteJson =
 	time:Int
 }
 
-typedef ChartJSON =
+typedef SongJson =
 {
 	bpmList:Array<BPMJson>,
 	chart:Array<NoteJson>
