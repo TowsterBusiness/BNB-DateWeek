@@ -18,51 +18,46 @@ class PlayState extends FlxState
 	var cameraHUD:FlxCamera;
 
 	var conductor:Conductor;
+	var firstUpdate:Bool = true;
 
 	var inputKeys:Array<FlxKey> = ['SPACE'];
 
 	var songInst:FlxSound;
-	var peckSound:FlxSound;
-	var flyInSound:FlxSound;
-	var thowSound:FlxSound;
-	var squawkSound:FlxSound;
+
+	var throwSound:FlxSound;
 
 	var bob:TowSprite;
 	var bosip:TowSprite;
-	var BG1:FlxSprite;
-	var BG2:FlxSprite;
-	var BG3:FlxSprite;
+	var BG:Background;
 
 	var birdList:FlxTypedSpriteGroup<Bird>;
 
 	var songJson:SongJson;
 	var songPath = 'LoveBirds';
 
+	var weirdOffset:Int = 0;
+	// Sick, Good, Ok, Bad, Shit
+	var rankings = [8, 15, 25, 40, 80];
+
+	/*
+		TODO: Add end-screen
+		TODO: Credits
+		TODO: Freeplay
+		TODO: Options
+
+	 */
 	override public function create()
 	{
 		super.create();
 
+		songPath = StaticVar.nextSong;
 		songJson = TowPaths.getFile('songs/' + songPath + '/chart', JSON, false);
 
-		conductor = new Conductor(songJson.bpmList, -10);
+		songInst = FlxG.sound.load(TowPaths.getFilePath('songs/' + songPath + '/Inst', OGG, false));
+		throwSound = FlxG.sound.load('assets/sounds/toss.wav');
 
-		songInst = FlxG.sound.load(TowPaths.getFilePath('songs/' + songPath + '/' + songPath, OGG, false));
-		songInst.play();
-		songInst.time = conductor.getMil() - 10;
-
-		// BG
-		BG1 = new FlxSprite(0, -10).loadGraphic(TowPaths.getFilePath('bg/day/bg1', PNG));
-		BG2 = new FlxSprite(0, -10).loadGraphic(TowPaths.getFilePath('bg/day/bg2', PNG));
-		BG3 = new FlxSprite(0, -10).loadGraphic(TowPaths.getFilePath('bg/day/bg3', PNG));
-		BG1.scale.set(0.67, 0.67);
-		BG2.scale.set(0.67, 0.67);
-		BG3.scale.set(0.67, 0.67);
-		BG1.updateHitbox();
-		BG2.updateHitbox();
-		BG3.updateHitbox();
-		add(BG1);
-		add(BG2);
-		add(BG3);
+		BG = new Background('day');
+		add(BG);
 
 		bob = new TowSprite(675, 190, 'characters/bob_assets');
 		bob.loadAnimations('characters/bob');
@@ -86,6 +81,14 @@ class PlayState extends FlxState
 	override public function update(elapsed:Float)
 	{
 		super.update(elapsed);
+
+		if (firstUpdate)
+		{
+			conductor = new Conductor(songJson.bpmList, 0);
+			songInst.play();
+			songInst.time = conductor.getMil();
+			firstUpdate = false;
+		}
 
 		organizeNotes();
 
@@ -111,19 +114,40 @@ class PlayState extends FlxState
 			}
 			if (conductor.getMil() > bird.time + bird.actionTime(3))
 			{
-				bird.goOut(bird.actionTime(2));
+				bird.goOut(bird.actionTime(3));
 			}
 		});
 
 		if (conductor.pastBeat())
 		{
 			bob.playAnim('idle');
-			bosip.playAnim('idle');
+			if (bosip.animation.finished || bosip.animation.curAnim.name == 'idle')
+			{
+				bosip.playAnim('idle');
+			}
 		}
 
 		if (FlxG.keys.anyJustPressed(inputKeys))
 		{
 			bosip.playAnim('throw');
+			throwSound.play(true);
+
+			var closestTimedBird:Bird = null;
+			birdList.forEachAlive(function(bird)
+			{
+				if (getRank(bird.time) == rankings.length)
+					return;
+				if (closestTimedBird == null)
+					closestTimedBird = bird;
+				if (Math.abs(conductor.getMil() - bird.time) < Math.abs(conductor.getMil() - closestTimedBird.time))
+					closestTimedBird = bird;
+			});
+
+			if (closestTimedBird != null)
+			{
+				trace(getRank(closestTimedBird.time));
+				closestTimedBird.shouldRank = false;
+			}
 		}
 	}
 
@@ -149,6 +173,20 @@ class PlayState extends FlxState
 		}
 	}
 
+	function getRank(time:Int)
+	{
+		var difference = Math.abs(conductor.getMil() - time);
+
+		for (index => rank in rankings)
+		{
+			if (difference < rank)
+				return index;
+		}
+		return rankings.length;
+	}
+
+	function addRankSprite(rankNum:Int) {}
+
 	override function onFocusLost()
 	{
 		conductor.pause();
@@ -158,7 +196,7 @@ class PlayState extends FlxState
 	override function onFocus()
 	{
 		conductor.unPause();
-		songInst.time = conductor.getMil() - 10;
+		songInst.time = conductor.getMil() - weirdOffset;
 		super.onFocus();
 	}
 }

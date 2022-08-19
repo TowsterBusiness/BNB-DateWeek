@@ -1,13 +1,14 @@
 {
+    "imagePath": "distractions/twitter_bird_assets",
     "animation": [
         {
             "prefix": "twitter bird flying0",
             "name": "flying",
             "offset": [
-                0,
-                0
+                49,
+                55
             ],
-            "isLoop": false,
+            "isLoop": true,
             "flipX": false,
             "frameRate": 24
         },
@@ -15,8 +16,8 @@
             "prefix": "twitter bird eat0",
             "name": "eat",
             "offset": [
-                0,
-                0
+                -26,
+                -10
             ],
             "isLoop": false,
             "flipX": false,
@@ -26,8 +27,8 @@
             "prefix": "twitter bird landing0",
             "name": "landing",
             "offset": [
-                0,
-                0
+                19,
+                5
             ],
             "isLoop": false,
             "flipX": false,
@@ -37,8 +38,8 @@
             "prefix": "twitter bird squawk0",
             "name": "squawk",
             "offset": [
-                0,
-                0
+                1,
+                26
             ],
             "isLoop": false,
             "flipX": false,
