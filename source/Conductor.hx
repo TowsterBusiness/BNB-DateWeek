@@ -58,6 +58,7 @@ class Conductor
 	{
 		if (isPause)
 			return;
+		isPause = true;
 		pauseStartTime = getRawMil();
 	}
 
@@ -65,6 +66,7 @@ class Conductor
 	{
 		if (!isPause)
 			return;
+		isPause = false;
 		trace(pauseCounter);
 		trace(pauseStartTime);
 		pauseCounter += getRawMil() - pauseStartTime;

@@ -1,4 +1,5 @@
 {
+    "imagePath": "characters/bosip_assets",
     "animation": [
         {
             "prefix": "bosip idle0",
@@ -37,8 +38,8 @@
             "prefix": "bosip bread crumb grab0",
             "name": "grab",
             "offset": [
-                0,
-                0
+                13,
+                1
             ],
             "isLoop": false,
             "flipX": false,
@@ -48,8 +49,8 @@
             "prefix": "bosip breadcrumb throw0",
             "name": "throw",
             "offset": [
-                0,
-                0
+                137,
+                1
             ],
             "isLoop": false,
             "flipX": false,
@@ -59,8 +60,8 @@
             "prefix": "bosip breadcrumb throw MISS0",
             "name": "throw MISS",
             "offset": [
-                0,
-                0
+                35,
+                1
             ],
             "isLoop": false,
             "flipX": false,

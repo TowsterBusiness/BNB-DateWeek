@@ -1,36 +1,37 @@
 {
+    "imagePath": "distractions/bird_assets",
     "animation": [
         {
             "prefix": "bird flying0",
             "name": "flying",
             "offset": [
-                0,
-                0
+                20,
+                50
             ],
             "isLoop": true,
-            "flipX": true,
+            "flipX": false,
             "frameRate": 24
         },
         {
             "prefix": "bird eat0",
             "name": "eat",
             "offset": [
-                0,
-                0
+                -29,
+                -7
             ],
             "isLoop": false,
-            "flipX": true,
+            "flipX": false,
             "frameRate": 24
         },
         {
             "prefix": "bird landing0",
             "name": "landing",
             "offset": [
-                0,
-                0
+                17,
+                7
             ],
             "isLoop": false,
-            "flipX": true,
+            "flipX": false,
             "frameRate": 24
         },
         {
@@ -38,10 +39,10 @@
             "name": "squawk",
             "offset": [
                 0,
-                0
+                27
             ],
             "isLoop": false,
-            "flipX": true,
+            "flipX": false,
             "frameRate": 24
         },
         {
@@ -52,7 +53,7 @@
                 0
             ],
             "isLoop": false,
-            "flipX": true,
+            "flipX": false,
             "frameRate": 24
         }
     ]
