@@ -35,7 +35,7 @@ class PlayState extends FlxState
 	var songJson:SongJson;
 	var songPath = 'LoveBirds';
 
-	var weirdOffset:Int = 0;
+	var offset:Int = 0;
 	// Sick, Good, Ok, Bad, Shit
 	var rankings = [8, 15, 25, 40, 80];
 
@@ -55,6 +55,8 @@ class PlayState extends FlxState
 
 		songInst = FlxG.sound.load(TowPaths.getFilePath('songs/' + songPath + '/Inst', OGG, false));
 		throwSound = FlxG.sound.load('assets/sounds/toss.wav');
+
+		offset = 1000;
 
 		BG = new Background('day');
 		add(BG);
@@ -196,7 +198,7 @@ class PlayState extends FlxState
 	override function onFocus()
 	{
 		conductor.unPause();
-		songInst.time = conductor.getMil() - weirdOffset;
+		songInst.time = conductor.getMil();
 		super.onFocus();
 	}
 }

@@ -3,16 +3,10 @@ package;
 import flixel.FlxG;
 import flixel.text.FlxText;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
-import haxe.Json;
 import towsterFlxUtil.TowPaths;
 import flixel.FlxSprite;
 import flixel.FlxState;
 import openfl.utils.Assets as FileSystem;
-
-typedef SongListJson =
-{
-	songList:Array<String>
-}
 
 class FreeplayState extends FlxState
 {
@@ -26,19 +20,18 @@ class FreeplayState extends FlxState
 	{
 		super.create();
 
-		BG = new FlxSprite(0, 0).loadGraphic(TowPaths.getFilePath('menus/enuBGBlue', PNG));
+		BG = new FlxSprite(0, 0).loadGraphic(TowPaths.getFilePath('menus/menuBGBlue', PNG));
 		add(BG);
 
-		var songNameList:Array<String> = Json.parse(FileSystem.getText('assets/songs/songList.json')).songList;
-		// ! Change this when you get home dip shit
-		//* <REMEMBER: to remove the json import>
+		var songNameList:Array<String> = TowPaths.getFile('songs/songList', JSON, false).songList;
 
 		songList = new FlxTypedSpriteGroup(30, 30, 999);
+		add(songList);
 		var textOffset = 0;
 		for (songName in songNameList)
 		{
-			var tempText = new FlxText(0, textOffset, 0, songName, 20);
-			tempText.borderColor = 0x000000;
+			var tempText = new FlxText(0, textOffset, 0, songName, 80);
+			tempText.font = TowPaths.getFilePath('fonts/Bangers-Regular.ttf');
 			songList.add(tempText);
 
 			textOffset += textSpacing;
