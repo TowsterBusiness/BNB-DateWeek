@@ -210,6 +210,7 @@ class Alphabet extends FlxSpriteGroup
 
 	public function startTypedText(speed:Float):Void
 	{
+		trace("123");
 		_finalText = text;
 		doSplitWords();
 

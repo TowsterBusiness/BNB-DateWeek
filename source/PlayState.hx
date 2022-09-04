@@ -1,5 +1,6 @@
 package;
 
+import flixel.tweens.FlxTween;
 import flixel.input.keyboard.FlxKey;
 import flixel.system.FlxSound;
 import JsonTypes;
@@ -12,6 +13,12 @@ import flixel.FlxObject;
 import flixel.FlxSprite;
 import flixel.FlxState;
 import towsterFlxUtil.TowSprite;
+
+typedef Rank =
+{
+	time:Int,
+	difference:Int
+}
 
 class PlayState extends FlxState
 {
@@ -37,13 +44,17 @@ class PlayState extends FlxState
 
 	var offset:Int = 0;
 	// Sick, Good, Ok, Bad, Shit
-	var rankings = [8, 15, 25, 40, 80];
+	var ratingSprite:FlxTypedSpriteGroup<RatingSprite>;
+	//* I coppied this into SongFinishedSubState so be careful
+	var rankings = [15, 25, 40, 100];
+	var rankList:Array<Rank> = [];
+	var rankNames = ["sick", "good", "Bad", "Shit"];
 
 	/*
 		TODO: Add end-screen
 		TODO: Credits
 		TODO: Freeplay
-		TODO: Options
+		TODO: Clean up
 
 	 */
 	override public function create()
@@ -54,6 +65,10 @@ class PlayState extends FlxState
 		songJson = TowPaths.getFile('songs/' + songPath + '/chart', JSON, false);
 
 		songInst = FlxG.sound.load(TowPaths.getFilePath('songs/' + songPath + '/Inst', OGG, false));
+		songInst.onComplete = () ->
+		{
+			openSubState(new SongFinishedSubState(rankList));
+		};
 		throwSound = FlxG.sound.load('assets/sounds/toss.wav');
 
 		offset = 1000;
@@ -78,6 +93,9 @@ class PlayState extends FlxState
 
 		birdList = new FlxTypedSpriteGroup(0, 0, 999);
 		add(birdList);
+
+		ratingSprite = new FlxTypedSpriteGroup(100, 100, 99);
+		add(ratingSprite);
 	}
 
 	override public function update(elapsed:Float)
@@ -93,11 +111,6 @@ class PlayState extends FlxState
 		}
 
 		organizeNotes();
-
-		if (FlxG.keys.justPressed.F1)
-		{
-			FlxG.switchState(new PlayState());
-		}
 
 		birdList.forEachAlive(function(bird)
 		{
@@ -147,9 +160,21 @@ class PlayState extends FlxState
 
 			if (closestTimedBird != null)
 			{
-				trace(getRank(closestTimedBird.time));
+				var tempRank = getRank(closestTimedBird.time);
+				ratingSprite.add(new RatingSprite(tempRank));
+				rankList.push({time: closestTimedBird.time, difference: conductor.getMil() - closestTimedBird.time});
 				closestTimedBird.shouldRank = false;
 			}
+		}
+
+		// ! THIS IS DEBUG CODE
+		if (FlxG.keys.justPressed.F2)
+		{
+			openSubState(new SongFinishedSubState(rankList));
+		}
+		if (FlxG.keys.justPressed.F1)
+		{
+			FlxG.switchState(new PlayState());
 		}
 	}
 
@@ -186,8 +211,6 @@ class PlayState extends FlxState
 		}
 		return rankings.length;
 	}
-
-	function addRankSprite(rankNum:Int) {}
 
 	override function onFocusLost()
 	{
