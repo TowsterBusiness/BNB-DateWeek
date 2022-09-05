@@ -1,5 +1,8 @@
 package;
 
+import flixel.tweens.FlxEase;
+import towsterFlxUtil.TowUtils;
+import flixel.ui.FlxBar;
 import flixel.tweens.FlxTween;
 import flixel.input.keyboard.FlxKey;
 import flixel.system.FlxSound;
@@ -50,6 +53,11 @@ class PlayState extends FlxState
 	var rankList:Array<Rank> = [];
 	var rankNames = ["sick", "good", "Bad", "Shit"];
 
+	var healthBar:FlxBar;
+	var healthBG:FlxSprite;
+	var healthP1:HealthIcon;
+	var healthP2:HealthIcon;
+
 	/*
 		TODO: Add end-screen
 		TODO: Credits
@@ -96,6 +104,21 @@ class PlayState extends FlxState
 
 		ratingSprite = new FlxTypedSpriteGroup(100, 100, 99);
 		add(ratingSprite);
+
+		healthBG = new FlxSprite(0, 46).loadGraphic(TowPaths.getFilePath('healthBar', PNG));
+		healthBG.screenCenter(X);
+		add(healthBG);
+
+		healthBar = new FlxBar(0, 50, LEFT_TO_RIGHT, 590, 11);
+		healthBar.createFilledBar(0xFF859ac1, 0xFFfdd173);
+		healthBar.screenCenter(X);
+		healthBar.percent = 50;
+		add(healthBar);
+
+		healthP1 = new HealthIcon(550, 5, 'bosip', true);
+		healthP2 = new HealthIcon(600, 5, 'bob-sleep', false);
+		add(healthP2);
+		add(healthP1);
 	}
 
 	override public function update(elapsed:Float)
@@ -139,6 +162,17 @@ class PlayState extends FlxState
 			if (bosip.animation.finished || bosip.animation.curAnim.name == 'idle')
 			{
 				bosip.playAnim('idle');
+			}
+
+			if (healthP1.angle != 5)
+			{
+				FlxTween.tween(healthP1, {angle: 5}, 0.3, {ease: FlxEase.expoOut});
+				FlxTween.tween(healthP2, {angle: -5}, 0.3, {ease: FlxEase.expoOut});
+			}
+			else
+			{
+				FlxTween.tween(healthP1, {angle: -5}, 0.3, {ease: FlxEase.expoOut});
+				FlxTween.tween(healthP2, {angle: 5}, 0.3, {ease: FlxEase.expoOut});
 			}
 		}
 

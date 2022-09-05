@@ -40,15 +40,20 @@ class Conductor
 	}
 
 	var nextBeatCheck:Float = 0;
+	var beatCheckBPM:BPMJson;
 
 	public function pastBeat():Bool
 	{
-		if (nextBeatCheck > getBPM().time)
-			nextBeatCheck = getBPM().time;
+		var bpmNow:BPMJson = getBPM();
+		if (nextBeatCheck > bpmNow.time && beatCheckBPM != bpmNow)
+		{
+			nextBeatCheck = bpmNow.time;
+			beatCheckBPM = bpmNow;
+		}
 
 		if (getMil() > nextBeatCheck)
 		{
-			nextBeatCheck += (6000 / getBPM().bpm * 8);
+			nextBeatCheck += (60000 / getBPM().bpm);
 			return true;
 		}
 		return false;

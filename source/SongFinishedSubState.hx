@@ -25,7 +25,7 @@ class SongFinishedSubState extends FlxSubState
 
 	var mainMessage:FlxText;
 	var dialogueSound:FlxSound;
-	var loadedTextPointer:Int = 0;
+	var loadedTextPointer:Int = -1;
 	var ratingSprite:FlxText;
 
 	public function new(rankList:Array<Rank>)
@@ -108,19 +108,13 @@ class SongFinishedSubState extends FlxSubState
 
 		dialogueSound = TowPaths.getFile('dialogue', OGG);
 
-		ratingSprite = new FlxText(0, 100, 0, finalRating, 100);
+		ratingSprite = new FlxText(0, -200, 0, finalRating, 100);
 		ratingSprite.screenCenter(X);
-		ratingSprite.alpha = 0;
+		ratingSprite.centerOrigin();
 		ratingSprite.font = TowPaths.getFilePath('fonts/Pangolin-Regular.ttf');
 		add(ratingSprite);
 
-		noteText = new FlxText(0, 300, 0, 'NOTE:', 60);
-		noteText.alpha = 0;
-		noteText.font = TowPaths.getFilePath('fonts/Pangolin-Regular.ttf');
-		noteText.screenCenter(X);
-		add(noteText);
-
-		mainMessage = new FlxText(0, 400, 0, mainMessageText.charAt(0), 50);
+		mainMessage = new FlxText(0, 450, 0, "", 70);
 		mainMessage.font = TowPaths.getFilePath('fonts/Pangolin-Regular.ttf');
 		mainMessage.screenCenter(X);
 		add(mainMessage);
@@ -129,23 +123,11 @@ class SongFinishedSubState extends FlxSubState
 		var ratingTimer = new Timer(1000);
 		ratingTimer.run = () ->
 		{
-			ratingSprite.alpha = 1;
-			var expandTimer = new Timer(100);
-			expandTimer.run = () ->
-			{
-				ratingSprite.scale.set(1.1, 1.1);
-				ratingSprite.updateHitbox();
-			}
-		}
-
-		var noteTimer = new Timer(2000);
-		noteTimer.run = () ->
-		{
-			FlxTween.tween(noteText, {alpha: 1}, 1);
+			FlxTween.tween(ratingSprite, {y: 200}, 2, {ease: FlxEase.cubeOut});
 		}
 
 		// Message Animations
-		var mmStartTimer = new Timer(4000);
+		var mmStartTimer = new Timer(3000);
 		mmStartTimer.run = () ->
 		{
 			var mainMessageTimer = new FlxTimer().start(0.05, (timer) ->
@@ -155,8 +137,14 @@ class SongFinishedSubState extends FlxSubState
 				loadedTextPointer++;
 				var curWidth = mainMessage.width;
 				mainMessage.x -= (curWidth - lastWidth) / 2;
-				dialogueSound.play();
+				dialogueSound.play(true);
 			}, mainMessageText.length);
+		}
+
+		var stopTimer = new Timer(4000);
+		stopTimer.run = () ->
+		{
+			mmStartTimer.stop();
 		}
 	}
 
@@ -168,5 +156,19 @@ class SongFinishedSubState extends FlxSubState
 				return index;
 		}
 		return rankings.length;
+	}
+
+	override function update(elapsed:Float)
+	{
+		super.update(elapsed);
+
+		if (FlxG.mouse.overlaps(ratingSprite))
+		{
+			ratingSprite.scale.set(1.2, 1.2);
+		}
+		else
+		{
+			ratingSprite.scale.set(1, 1);
+		}
 	}
 }
