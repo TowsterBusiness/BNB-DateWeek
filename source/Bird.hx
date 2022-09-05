@@ -73,7 +73,7 @@ class Bird extends TowSprite
 		playAnim('flying');
 		flyInSound.play();
 		hasFlownIn = true;
-		FlxTween.tween(this, {x: 170, y: 540}, time / 1000, {
+		FlxTween.tween(this, {x: Math.random() * 100 + 170, y: Math.random() * 30 + 540}, time / 1000, {
 			ease: FlxEase.cubeInOut,
 			onComplete: (tween) ->
 			{

@@ -21,7 +21,8 @@ class MenuState extends FlxState
 	var confirmSound:FlxSound;
 	var scrollSound:FlxSound;
 
-	var buttonList:Array<String> = ['menu_story_mode', 'menu_freeplay', 'menu_credits', 'menu_options'];
+	// TODO make more if you have time
+	var buttonList:Array<String> = ['menu_story_mode', 'menu_credits', 'menu_options'];
 	var buttonOffsetMult:Int = 150;
 	var buttonOffsetAdd:Int = 50;
 	var selectedButtonIndex:Int = 0;
@@ -30,8 +31,8 @@ class MenuState extends FlxState
 	{
 		super.create();
 
-		confirmSound = FlxG.sound.load(TowPaths.getFilePath('sounds/menu/confirmMenu', OGG, false));
-		scrollSound = FlxG.sound.load(TowPaths.getFilePath('sounds/menu/scrollMenu', OGG, false));
+		confirmSound = FlxG.sound.load(TowPaths.getFilePath('menu/confirmMenu', OGG));
+		scrollSound = FlxG.sound.load(TowPaths.getFilePath('menu/scrollMenu', OGG));
 
 		BG = new FlxSprite(0, 0).loadGraphic(TowPaths.getFilePath('menus/menuBG', PNG));
 		add(BG);
@@ -73,13 +74,15 @@ class MenuState extends FlxState
 
 		if (FlxG.keys.justPressed.ENTER)
 		{
+			confirmSound.play(true);
 			switch (selectedButtonIndex)
 			{
 				case 0:
 					StaticVar.nextSong = 'LoveBirds';
 					FlxG.switchState(new DialogueState());
+				case 2:
+					FlxG.switchState(new OptionsState());
 			}
-			confirmSound.play(true);
 		}
 
 		super.update(elapsed);

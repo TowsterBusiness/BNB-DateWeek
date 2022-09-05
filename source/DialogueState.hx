@@ -31,6 +31,9 @@ class DialogueState extends FlxState
 	var dialogueBox:TowSprite;
 	var dialogueText:DialogueText;
 
+	var bob:TowSprite;
+	var bosip:TowSprite;
+
 	override function create()
 	{
 		super.create();
@@ -51,6 +54,21 @@ class DialogueState extends FlxState
 		}
 
 		add(characterList);
+
+		bob = new TowSprite(675, 190, 'characters/bob_assets');
+		bob.loadAnimations('characters/bob');
+		bob.scale.set(0.5, 0.5);
+		bob.playAnim('idle');
+		bob.updateHitbox();
+
+		bosip = new TowSprite(500, 150, 'characters/bosip_assets');
+		bosip.loadAnimations('characters/bosip');
+		bosip.scale.set(0.5, 0.5);
+		bosip.playAnim('idle');
+		bosip.updateHitbox();
+
+		add(bob);
+		add(bosip);
 
 		dialogueBox = new TowSprite(0, 400, 'dialogue/dialogue_box');
 		dialogueBox.animation.addByPrefix('start', 'dialogue box anim0', 24, false);

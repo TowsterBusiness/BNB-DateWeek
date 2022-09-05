@@ -1,5 +1,9 @@
 package;
 
+import flixel.tweens.FlxEase;
+import towsterFlxUtil.TowUtils;
+import flixel.ui.FlxBar;
+import flixel.tweens.FlxTween;
 import flixel.input.keyboard.FlxKey;
 import flixel.system.FlxSound;
 import JsonTypes;
@@ -12,6 +16,12 @@ import flixel.FlxObject;
 import flixel.FlxSprite;
 import flixel.FlxState;
 import towsterFlxUtil.TowSprite;
+
+typedef Rank =
+{
+	time:Int,
+	difference:Int
+}
 
 class PlayState extends FlxState
 {
@@ -35,15 +45,24 @@ class PlayState extends FlxState
 	var songJson:SongJson;
 	var songPath = 'LoveBirds';
 
-	var weirdOffset:Int = 0;
+	var offset:Int = 0;
 	// Sick, Good, Ok, Bad, Shit
-	var rankings = [8, 15, 25, 40, 80];
+	var ratingSprite:FlxTypedSpriteGroup<RatingSprite>;
+	//* I coppied this into SongFinishedSubState so be careful
+	var rankings = [15, 25, 40, 100];
+	var rankList:Array<Rank> = [];
+	var rankNames = ["sick", "good", "Bad", "Shit"];
+
+	var healthBar:FlxBar;
+	var healthBG:FlxSprite;
+	var healthP1:HealthIcon;
+	var healthP2:HealthIcon;
 
 	/*
 		TODO: Add end-screen
 		TODO: Credits
 		TODO: Freeplay
-		TODO: Options
+		TODO: Clean up
 
 	 */
 	override public function create()
@@ -54,7 +73,13 @@ class PlayState extends FlxState
 		songJson = TowPaths.getFile('songs/' + songPath + '/chart', JSON, false);
 
 		songInst = FlxG.sound.load(TowPaths.getFilePath('songs/' + songPath + '/Inst', OGG, false));
+		songInst.onComplete = () ->
+		{
+			openSubState(new SongFinishedSubState(rankList));
+		};
 		throwSound = FlxG.sound.load('assets/sounds/toss.wav');
+
+		offset = 1000;
 
 		BG = new Background('day');
 		add(BG);
@@ -76,6 +101,24 @@ class PlayState extends FlxState
 
 		birdList = new FlxTypedSpriteGroup(0, 0, 999);
 		add(birdList);
+
+		ratingSprite = new FlxTypedSpriteGroup(100, 100, 99);
+		add(ratingSprite);
+
+		healthBG = new FlxSprite(0, 46).loadGraphic(TowPaths.getFilePath('healthBar', PNG));
+		healthBG.screenCenter(X);
+		add(healthBG);
+
+		healthBar = new FlxBar(0, 50, LEFT_TO_RIGHT, 590, 11);
+		healthBar.createFilledBar(0xFF859ac1, 0xFFfdd173);
+		healthBar.screenCenter(X);
+		healthBar.percent = 50;
+		add(healthBar);
+
+		healthP1 = new HealthIcon(550, 5, 'bosip', true);
+		healthP2 = new HealthIcon(600, 5, 'bob-sleep', false);
+		add(healthP2);
+		add(healthP1);
 	}
 
 	override public function update(elapsed:Float)
@@ -91,11 +134,6 @@ class PlayState extends FlxState
 		}
 
 		organizeNotes();
-
-		if (FlxG.keys.justPressed.F1)
-		{
-			FlxG.switchState(new PlayState());
-		}
 
 		birdList.forEachAlive(function(bird)
 		{
@@ -125,6 +163,17 @@ class PlayState extends FlxState
 			{
 				bosip.playAnim('idle');
 			}
+
+			if (healthP1.angle != 5)
+			{
+				FlxTween.tween(healthP1, {angle: 5}, 0.3, {ease: FlxEase.expoOut});
+				FlxTween.tween(healthP2, {angle: -5}, 0.3, {ease: FlxEase.expoOut});
+			}
+			else
+			{
+				FlxTween.tween(healthP1, {angle: -5}, 0.3, {ease: FlxEase.expoOut});
+				FlxTween.tween(healthP2, {angle: 5}, 0.3, {ease: FlxEase.expoOut});
+			}
 		}
 
 		if (FlxG.keys.anyJustPressed(inputKeys))
@@ -145,9 +194,21 @@ class PlayState extends FlxState
 
 			if (closestTimedBird != null)
 			{
-				trace(getRank(closestTimedBird.time));
+				var tempRank = getRank(closestTimedBird.time);
+				ratingSprite.add(new RatingSprite(tempRank));
+				rankList.push({time: closestTimedBird.time, difference: conductor.getMil() - closestTimedBird.time});
 				closestTimedBird.shouldRank = false;
 			}
+		}
+
+		// ! THIS IS DEBUG CODE
+		if (FlxG.keys.justPressed.F2)
+		{
+			openSubState(new SongFinishedSubState(rankList));
+		}
+		if (FlxG.keys.justPressed.F1)
+		{
+			FlxG.switchState(new PlayState());
 		}
 	}
 
@@ -185,8 +246,6 @@ class PlayState extends FlxState
 		return rankings.length;
 	}
 
-	function addRankSprite(rankNum:Int) {}
-
 	override function onFocusLost()
 	{
 		conductor.pause();
@@ -196,7 +255,7 @@ class PlayState extends FlxState
 	override function onFocus()
 	{
 		conductor.unPause();
-		songInst.time = conductor.getMil() - weirdOffset;
+		songInst.time = conductor.getMil();
 		super.onFocus();
 	}
 }
