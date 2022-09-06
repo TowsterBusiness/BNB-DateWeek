@@ -27,6 +27,7 @@ class SongFinishedSubState extends FlxSubState
 	var dialogueSound:FlxSound;
 	var loadedTextPointer:Int = -1;
 	var ratingSprite:FlxText;
+	var enterText:FlxText;
 
 	public function new(rankList:Array<Rank>)
 	{
@@ -111,6 +112,7 @@ class SongFinishedSubState extends FlxSubState
 		ratingSprite = new FlxText(0, -200, 0, finalRating, 100);
 		ratingSprite.screenCenter(X);
 		ratingSprite.centerOrigin();
+		ratingSprite.angle = 90;
 		ratingSprite.font = TowPaths.getFilePath('fonts/Pangolin-Regular.ttf');
 		add(ratingSprite);
 
@@ -119,11 +121,15 @@ class SongFinishedSubState extends FlxSubState
 		mainMessage.screenCenter(X);
 		add(mainMessage);
 
+		enterText = new FlxText(0, 660, 0, 'Press ENTER!', 20);
+		enterText.alpha = 0;
+		add(enterText);
+
 		// Rating Animations
 		var ratingTimer = new Timer(1000);
 		ratingTimer.run = () ->
 		{
-			FlxTween.tween(ratingSprite, {y: 200}, 2, {ease: FlxEase.cubeOut});
+			FlxTween.tween(ratingSprite, {y: 200, angle: 0}, 2, {ease: FlxEase.cubeOut});
 		}
 
 		// Message Animations
@@ -139,12 +145,22 @@ class SongFinishedSubState extends FlxSubState
 				mainMessage.x -= (curWidth - lastWidth) / 2;
 				dialogueSound.play(true);
 			}, mainMessageText.length);
+
+			mmStartTimer.stop();
 		}
 
-		var stopTimer = new Timer(4000);
-		stopTimer.run = () ->
+		var nextTimer = new Timer(4000);
+		nextTimer.run = () ->
 		{
-			mmStartTimer.stop();
+			var flickeringEnter = new FlxTimer().start(0.5, (timer) ->
+			{
+				if (enterText.alpha == 0)
+					enterText.alpha = 1
+				else
+					enterText.alpha = 0;
+			}, 0);
+
+			nextTimer.stop();
 		}
 	}
 
@@ -169,6 +185,11 @@ class SongFinishedSubState extends FlxSubState
 		else
 		{
 			ratingSprite.scale.set(1, 1);
+		}
+
+		if (FlxG.keys.justPressed.ENTER)
+		{
+			FlxG.switchState(new MenuState());
 		}
 	}
 }

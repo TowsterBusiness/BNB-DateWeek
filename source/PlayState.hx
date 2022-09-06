@@ -1,5 +1,8 @@
 package;
 
+import haxe.Timer;
+import flixel.text.FlxText;
+import flixel.FlxBasic;
 import flixel.tweens.FlxEase;
 import towsterFlxUtil.TowUtils;
 import flixel.ui.FlxBar;
@@ -27,6 +30,8 @@ class PlayState extends FlxState
 {
 	var cameraHUD:FlxCamera;
 
+	var isGameover:Bool = false;
+
 	var conductor:Conductor;
 	var firstUpdate:Bool = true;
 
@@ -39,6 +44,8 @@ class PlayState extends FlxState
 	var bob:TowSprite;
 	var bosip:TowSprite;
 	var BG:Background;
+
+	var gameoverBlack:FlxSprite;
 
 	var birdList:FlxTypedSpriteGroup<Bird>;
 
@@ -75,7 +82,8 @@ class PlayState extends FlxState
 		songInst = FlxG.sound.load(TowPaths.getFilePath('songs/' + songPath + '/Inst', OGG, false));
 		songInst.onComplete = () ->
 		{
-			openSubState(new SongFinishedSubState(rankList));
+			if (!isGameover)
+				win();
 		};
 		throwSound = FlxG.sound.load('assets/sounds/toss.wav');
 
@@ -83,24 +91,6 @@ class PlayState extends FlxState
 
 		BG = new Background('day');
 		add(BG);
-
-		bob = new TowSprite(675, 190, 'characters/bob_assets');
-		bob.loadAnimations('characters/bob');
-		bob.scale.set(0.5, 0.5);
-		bob.playAnim('idle');
-		bob.updateHitbox();
-
-		bosip = new TowSprite(500, 150, 'characters/bosip_assets');
-		bosip.loadAnimations('characters/bosip');
-		bosip.scale.set(0.5, 0.5);
-		bosip.playAnim('idle');
-		bosip.updateHitbox();
-
-		add(bob);
-		add(bosip);
-
-		birdList = new FlxTypedSpriteGroup(0, 0, 999);
-		add(birdList);
 
 		ratingSprite = new FlxTypedSpriteGroup(100, 100, 99);
 		add(ratingSprite);
@@ -119,6 +109,29 @@ class PlayState extends FlxState
 		healthP2 = new HealthIcon(600, 5, 'bob-sleep', false);
 		add(healthP2);
 		add(healthP1);
+
+		// please tell me if there is a better way of doing this...
+		gameoverBlack = new FlxSprite(0, 0).loadGraphic(TowPaths.getFilePath('blackScreen_holed', PNG));
+		gameoverBlack.alpha = 0;
+		add(gameoverBlack);
+
+		// everything after this point will not be covered with black in gameover
+		bob = new TowSprite(675, 190, 'characters/bob_assets');
+		bob.loadAnimations('characters/bob');
+		bob.scale.set(0.5, 0.5);
+		bob.playAnim('idle');
+		bob.updateHitbox();
+		bosip = new TowSprite(500, 150, 'characters/bosip_assets');
+		bosip.loadAnimations('characters/bosip');
+		bosip.scale.set(0.5, 0.5);
+		bosip.playAnim('idle');
+		bosip.updateHitbox();
+		bosip.health = 50;
+		add(bob);
+		add(bosip);
+
+		birdList = new FlxTypedSpriteGroup(0, 0, 999);
+		add(birdList);
 	}
 
 	override public function update(elapsed:Float)
@@ -148,7 +161,14 @@ class PlayState extends FlxState
 			}
 			if (conductor.getMil() > bird.time + bird.actionTime(2))
 			{
-				bird.rank();
+				if (bird.shouldRank)
+				{
+					bird.shouldRank = false;
+					bird.playAnim('squawk');
+					bosip.playAnim('throw MISS');
+					bob.playAnim('grumpy');
+					changeHealth(-20);
+				}
 			}
 			if (conductor.getMil() > bird.time + bird.actionTime(3))
 			{
@@ -156,7 +176,7 @@ class PlayState extends FlxState
 			}
 		});
 
-		if (conductor.pastBeat())
+		if (conductor.pastBeat() && !isGameover)
 		{
 			bob.playAnim('idle');
 			if (bosip.animation.finished || bosip.animation.curAnim.name == 'idle')
@@ -176,7 +196,7 @@ class PlayState extends FlxState
 			}
 		}
 
-		if (FlxG.keys.anyJustPressed(inputKeys))
+		if (FlxG.keys.anyJustPressed(inputKeys) && !isGameover)
 		{
 			bosip.playAnim('throw');
 			throwSound.play(true);
@@ -198,7 +218,22 @@ class PlayState extends FlxState
 				ratingSprite.add(new RatingSprite(tempRank));
 				rankList.push({time: closestTimedBird.time, difference: conductor.getMil() - closestTimedBird.time});
 				closestTimedBird.shouldRank = false;
+				trace(conductor.getMil() - closestTimedBird.time);
+				switch (tempRank)
+				{
+					case 0:
+						changeHealth(10);
+					case 2:
+						changeHealth(-5);
+					case 3:
+						changeHealth(-10);
+				}
 			}
+		}
+
+		if (isGameover && FlxG.keys.justPressed.ENTER)
+		{
+			retry();
 		}
 
 		// ! THIS IS DEBUG CODE
@@ -246,6 +281,60 @@ class PlayState extends FlxState
 		return rankings.length;
 	}
 
+	function gameover()
+	{
+		isGameover = true;
+		bob.playAnim('gameover');
+		bosip.playAnim('gameover');
+		conductor.pause();
+
+		FlxTween.tween(songInst, {volume: 0}, 2);
+		FlxTween.tween(gameoverBlack, {alpha: 0.9}, 2);
+	}
+
+	function retry()
+	{
+		bob.playAnim('retry');
+		bosip.playAnim('idle');
+		FlxTween.tween(gameoverBlack, {alpha: 0}, 2, {
+			onComplete: (tween) ->
+			{
+				FlxG.switchState(new PlayState());
+			}
+		});
+	}
+
+	function win()
+	{
+		bob.playAnim('happy');
+		bosip.playAnim('happy');
+		var startFade = new Timer(1000);
+		startFade.run = () ->
+		{
+			openSubState(new SongFinishedSubState(rankList));
+		}
+	}
+
+	function changeHealth(health:Int)
+	{
+		bosip.health += health;
+		bosip.health %= 100;
+		if (bosip.health < 0)
+		{
+			bosip.health = 0;
+		}
+
+		healthBar.percent = bosip.health;
+
+		FlxTween.tween(healthP1, {x: healthBar.percent / 100 * 590 + 255}, 0.5, {ease: FlxEase.expoOut});
+		FlxTween.tween(healthP2, {x: healthBar.percent / 100 * 590 + 305}, 0.5, {ease: FlxEase.expoOut});
+
+		if (healthBar.percent <= 0)
+		{
+			gameover();
+		}
+	}
+
 	override function onFocusLost()
 	{
 		conductor.pause();
@@ -254,7 +343,10 @@ class PlayState extends FlxState
 
 	override function onFocus()
 	{
-		conductor.unPause();
+		if (!isGameover)
+		{
+			conductor.unPause();
+		}
 		songInst.time = conductor.getMil();
 		super.onFocus();
 	}

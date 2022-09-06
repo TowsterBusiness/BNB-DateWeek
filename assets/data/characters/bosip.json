@@ -66,6 +66,28 @@
             "isLoop": false,
             "flipX": false,
             "frameRate": 24
+        },
+        {
+            "prefix": "bosip gameover0",
+            "name": "gameover",
+            "offset": [
+                0,
+                -1
+            ],
+            "isLoop": false,
+            "flipX": false,
+            "frameRate": 24
+        },
+        {
+            "prefix": "bosip gameover retry0",
+            "name": "retry",
+            "offset": [
+                0,
+                -2
+            ],
+            "isLoop": false,
+            "flipX": false,
+            "frameRate": 24
         }
     ]
 }
