@@ -45,6 +45,7 @@ class Conductor
 	public function pastBeat():Bool
 	{
 		var bpmNow:BPMJson = getBPM();
+
 		if (nextBeatCheck > bpmNow.time && beatCheckBPM != bpmNow)
 		{
 			nextBeatCheck = bpmNow.time;
