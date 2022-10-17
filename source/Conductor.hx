@@ -12,6 +12,9 @@ class Conductor
 	var pauseCounter:Int = 0;
 	var isPause:Bool = false;
 
+	var nextBeatCheck:Float = 0;
+	var beatCheckBPM:BPMJson = null;
+
 	public function new(bpmJson:Array<BPMJson>, ?startDelay:Int = 0)
 	{
 		this.bpmJson = bpmJson;
@@ -28,33 +31,53 @@ class Conductor
 
 	public function getBPM():BPMJson
 	{
-		var returnBpm:BPMJson = {time: -1, bpm: 120};
+		var returnBpm:BPMJson = {time: -9999999, bpm: 120};
+		var beenChanged:Bool = false;
 		for (bpm in bpmJson)
 		{
-			if (getMil() > bpm.time && bpm.time > returnBpm.time)
+			if (getMil() >= bpm.time && bpm.time > returnBpm.time)
 			{
 				returnBpm = bpm;
+				beenChanged = true;
 			}
 		}
-		return returnBpm;
+		if (beenChanged)
+		{
+			return returnBpm;
+		}
+		else
+		{
+			returnBpm = {time: 9999999, bpm: 120};
+			for (bpm in bpmJson)
+			{
+				if (bpm.time < returnBpm.time)
+				{
+					returnBpm = bpm;
+					beenChanged = true;
+				}
+			}
+			if (beenChanged)
+				return bpmJson[0]
+			else
+				return returnBpm;
+		}
 	}
-
-	var nextBeatCheck:Float = 0;
-	var beatCheckBPM:BPMJson;
 
 	public function pastBeat():Bool
 	{
 		var bpmNow:BPMJson = getBPM();
 
-		if (nextBeatCheck > bpmNow.time && beatCheckBPM != bpmNow)
+		if (nextBeatCheck >= bpmNow.time && beatCheckBPM != bpmNow)
 		{
+			trace("I'm annoying " + bpmNow);
 			nextBeatCheck = bpmNow.time;
 			beatCheckBPM = bpmNow;
+			trace(Timer.stamp() * 1000);
 		}
 
 		if (getMil() > nextBeatCheck)
 		{
-			nextBeatCheck += (60000 / getBPM().bpm);
+			nextBeatCheck += (60000 / bpmNow.bpm);
 			return true;
 		}
 		return false;
@@ -66,6 +89,7 @@ class Conductor
 			return;
 		isPause = true;
 		pauseStartTime = getRawMil();
+		trace("Paused");
 	}
 
 	public function unPause():Void
@@ -73,10 +97,9 @@ class Conductor
 		if (!isPause)
 			return;
 		isPause = false;
-		trace(pauseCounter);
-		trace(pauseStartTime);
 		pauseCounter += getRawMil() - pauseStartTime;
 		pauseStartTime = 0;
+		trace("UnPaused");
 	}
 
 	public function getRawMil():Int

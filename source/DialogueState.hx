@@ -38,6 +38,8 @@ class DialogueState extends FlxState
 	{
 		super.create();
 
+		FlxG.sound.music.volume = 0;
+
 		// TODO add music in the background
 
 		songPath = StaticVar.nextSong;

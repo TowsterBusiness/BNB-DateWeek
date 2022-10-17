@@ -1,5 +1,7 @@
 package;
 
+import flixel.text.FlxText;
+import towsterFlxUtil.Fade;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import haxe.Timer;
@@ -19,6 +21,7 @@ class StartScreen extends FlxState
 {
 	var conductor:Conductor;
 	var song:FlxSound;
+	var enterSound:FlxSound;
 
 	var blackBG:FlxSprite;
 	var BG:FlxSprite;
@@ -26,6 +29,12 @@ class StartScreen extends FlxState
 	var bushes:FlxSprite;
 	var logoBumpin:TowSprite;
 	var mainChar:FlxSprite;
+	var enterButton:TowSprite;
+
+	var blackScreen:FlxSprite;
+	var whiteScreen:FlxSprite;
+	var textSpr:FlxText;
+	var fade:Fade;
 
 	var beatNum = 0;
 
@@ -33,7 +42,9 @@ class StartScreen extends FlxState
 	{
 		super.create();
 
-		song = FlxG.sound.load(TowPaths.getFilePath('sounds/menu/neg_bnb_menu_music_maybe_.wav'));
+		// song = FlxG.sound.load(TowPaths.getFilePath('sounds/menu/neg_bnb_menu_music_maybe_.wav'), 1, true);
+		FlxG.sound.playMusic(TowPaths.getFilePath('sounds/menu/neg_bnb_menu_music_maybe_.wav'), 1, true);
+		enterSound = FlxG.sound.load(TowPaths.getFilePath('sounds/menu/confirmMenu.ogg'));
 
 		// blackBG = new FlxSprite(0, 0, AssetPaths.blackScreen__png);
 
@@ -68,6 +79,27 @@ class StartScreen extends FlxState
 		mainChar.updateHitbox();
 		mainChar.antialiasing = true;
 		add(mainChar);
+
+		enterButton = new TowSprite(12, 511, 'start screen/pressEnter', true);
+		enterButton.scale.set(0.7, 0.7);
+		enterButton.playAnim('idle');
+		add(enterButton);
+
+		blackScreen = new FlxSprite(0, 0).loadGraphic(TowPaths.getFilePath('blackScreen', PNG));
+		add(blackScreen);
+
+		whiteScreen = new FlxSprite(0, 0).loadGraphic(TowPaths.getFilePath('whiteScreen', PNG));
+		whiteScreen.alpha = 0;
+		add(whiteScreen);
+
+		textSpr = new FlxText(0, 0, 0, "", 80);
+		textSpr.font = TowPaths.getFilePath('fonts/setofont.ttf');
+		textSpr.alignment = CENTER;
+		textSpr.screenCenter(XY);
+		add(textSpr);
+
+		fade = new Fade(true);
+		add(fade);
 	}
 
 	var first = 0;
@@ -75,13 +107,22 @@ class StartScreen extends FlxState
 	var last:Float = 0;
 
 	var right:Bool = true;
+	var startText:Array<String> = [
+		"Bob & Bosip Date Week",
+		"Made with love and care by:",
+		"Made with love and care by:\nArt: Pieroshki",
+		"Made with love and care by:\nArt: Pieroshki\nCode: Towster",
+		"Made with love and care by:\nArt: Pieroshki\nCode: Towster\nMusic: Fluffyhairs & No-p",
+		"Stole assets from FNF",
+		"Inspired by Rythm Heaven",
+	];
+	var textBeatNum:Int;
 
 	override function update(elapsed:Float)
 	{
 		if (first == 0)
 		{
-			conductor = new Conductor([{"bpm": 115, "time": 0}]);
-			song.play();
+			conductor = new Conductor([{"bpm": 125, "time": 0}]);
 			first = -1;
 		}
 
@@ -93,30 +134,41 @@ class StartScreen extends FlxState
 			{
 				mainChar.animation.play('right');
 				logoBumpin.playAnim('idle');
-				// FlxTween.tween(BG, {y: -50}, 60 / conductor.getBPM(), {
-				// 	ease: (t) -> {
-				// 		 return (-4 * t) * (t - 1);
-				// 	},
-				// 	onComplete: (x) -> {
-				// 		 BG.y = 0;
-				// 	}
-				// });
 			}
 			else
+			{
 				mainChar.animation.play('left');
-			right = !right;
+				if (textBeatNum < startText.length)
+				{
+					textSpr.text = startText[textBeatNum];
+					textSpr.screenCenter(XY);
+				}
+				else if (textBeatNum == startText.length)
+				{
+					whiteScreen.alpha = 1;
+					blackScreen.alpha = 0;
+					textSpr.alpha = 0;
+					FlxTween.tween(whiteScreen, {alpha: 0}, 2);
+				}
 
-			TowUtils.debug(bushes);
+				textBeatNum++;
+			}
+			right = !right;
 
 			beatNum++;
 			trace(beatNum);
 		}
 
-		if (FlxG.keys.justPressed.SPACE)
+		if (FlxG.keys.justPressed.ENTER && enterButton.animation.curAnim.name != 'pressed')
 		{
-			var stamp = Timer.stamp();
-			trace(stamp - last);
-			last = stamp;
+			enterButton.playAnim('pressed');
+			enterSound.play();
+			fade.goIn(new MenuState());
+		}
+
+		if (FlxG.keys.justPressed.U)
+		{
+			FlxG.switchState(new StartScreen());
 		}
 		super.update(elapsed);
 	}
@@ -130,7 +182,7 @@ class StartScreen extends FlxState
 	override function onFocus()
 	{
 		conductor.unPause();
-		song.time = conductor.getMil();
+		// song.time = conductor.getMil();
 		super.onFocus();
 	}
 }

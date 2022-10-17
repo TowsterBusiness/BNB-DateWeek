@@ -9,5 +9,6 @@ class HealthIcon extends TowSprite
 		super(x, y, 'icons/' + id + '-icon', true);
 		playAnim('happy');
 		flipX = isP1;
+		antialiasing = true;
 	}
 }

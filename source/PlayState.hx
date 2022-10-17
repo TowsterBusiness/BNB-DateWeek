@@ -34,6 +34,9 @@ class PlayState extends FlxState
 
 	var conductor:Conductor;
 	var firstUpdate:Bool = true;
+	var countConductor:Conductor;
+	var countState:Int = 0;
+	var countSprite:SongCountDownSprite;
 
 	var inputKeys:Array<FlxKey> = ['SPACE'];
 
@@ -132,108 +135,127 @@ class PlayState extends FlxState
 
 		birdList = new FlxTypedSpriteGroup(0, 0, 999);
 		add(birdList);
+
+		countSprite = new SongCountDownSprite();
+		add(countSprite);
 	}
 
 	override public function update(elapsed:Float)
 	{
 		super.update(elapsed);
 
-		if (firstUpdate)
+		if (countState == 0)
+		{
+			countConductor = new Conductor(songJson.bpmList, -1000);
+			countState = 1;
+		}
+		else if (countState >= 1 && countState <= 4)
+		{
+			if (countConductor.pastBeat())
+			{
+				FlxG.sound.play('assets/sounds/123Go/bosip/' + countState + '.ogg');
+				countSprite.next();
+				countState++;
+			}
+		}
+		else if (countState == 5)
 		{
 			conductor = new Conductor(songJson.bpmList, 0);
 			songInst.play();
 			songInst.time = conductor.getMil();
-			firstUpdate = false;
+			countState = 6;
 		}
-
-		organizeNotes();
-
-		birdList.forEachAlive(function(bird)
+		else
 		{
-			if (conductor.getMil() > bird.time + bird.actionTime(0))
-			{
-				// bruh lmao
-				bird.comeIn(Math.floor(Math.abs(bird.actionTime(0))));
-			}
-			if (conductor.getMil() > bird.time + bird.actionTime(1))
-			{
-				bird.peck();
-			}
-			if (conductor.getMil() > bird.time + bird.actionTime(2))
-			{
-				if (bird.shouldRank)
-				{
-					bird.shouldRank = false;
-					bird.playAnim('squawk');
-					bosip.playAnim('throw MISS');
-					bob.playAnim('grumpy');
-					changeHealth(-20);
-				}
-			}
-			if (conductor.getMil() > bird.time + bird.actionTime(3))
-			{
-				bird.goOut(bird.actionTime(3));
-			}
-		});
+			organizeNotes();
 
-		if (conductor.pastBeat() && !isGameover)
-		{
-			bob.playAnim('idle');
-			if (bosip.animation.finished || bosip.animation.curAnim.name == 'idle')
-			{
-				bosip.playAnim('idle');
-			}
-
-			if (healthP1.angle != 5)
-			{
-				FlxTween.tween(healthP1, {angle: 5}, 0.3, {ease: FlxEase.expoOut});
-				FlxTween.tween(healthP2, {angle: -5}, 0.3, {ease: FlxEase.expoOut});
-			}
-			else
-			{
-				FlxTween.tween(healthP1, {angle: -5}, 0.3, {ease: FlxEase.expoOut});
-				FlxTween.tween(healthP2, {angle: 5}, 0.3, {ease: FlxEase.expoOut});
-			}
-		}
-
-		if (FlxG.keys.anyJustPressed(inputKeys) && !isGameover)
-		{
-			bosip.playAnim('throw');
-			throwSound.play(true);
-
-			var closestTimedBird:Bird = null;
 			birdList.forEachAlive(function(bird)
 			{
-				if (getRank(bird.time) == rankings.length)
-					return;
-				if (closestTimedBird == null)
-					closestTimedBird = bird;
-				if (Math.abs(conductor.getMil() - bird.time) < Math.abs(conductor.getMil() - closestTimedBird.time))
-					closestTimedBird = bird;
+				if (conductor.getMil() > bird.time + bird.actionTime(0))
+				{
+					// bruh lmao
+					bird.comeIn(Math.floor(Math.abs(bird.actionTime(0))));
+				}
+				if (conductor.getMil() > bird.time + bird.actionTime(1))
+				{
+					bird.peck();
+				}
+				if (conductor.getMil() > bird.time + bird.actionTime(2))
+				{
+					if (bird.shouldRank)
+					{
+						bird.shouldRank = false;
+						bird.playAnim('squawk');
+						bosip.playAnim('throw MISS');
+						bob.playAnim('grumpy');
+						changeHealth(-20);
+					}
+				}
+				if (conductor.getMil() > bird.time + bird.actionTime(3))
+				{
+					bird.goOut(bird.actionTime(3));
+				}
 			});
 
-			if (closestTimedBird != null)
+			if (conductor.pastBeat() && !isGameover)
 			{
-				var tempRank = getRank(closestTimedBird.time);
-				ratingSprite.add(new RatingSprite(tempRank));
-				rankList.push({time: closestTimedBird.time, difference: conductor.getMil() - closestTimedBird.time});
-				closestTimedBird.shouldRank = false;
-				trace(conductor.getMil() - closestTimedBird.time);
-				switch (tempRank)
+				bob.playAnim('idle');
+				if (bosip.animation.finished || bosip.animation.curAnim.name == 'idle')
 				{
-					case 0:
-						changeHealth(10);
-					case 2:
-						changeHealth(-5);
-					case 3:
-						changeHealth(-10);
+					bosip.playAnim('idle');
+				}
+
+				if (healthP1.angle != 5)
+				{
+					FlxTween.tween(healthP1, {angle: 5}, 0.3, {ease: FlxEase.expoOut});
+					FlxTween.tween(healthP2, {angle: -5}, 0.3, {ease: FlxEase.expoOut});
+				}
+				else
+				{
+					FlxTween.tween(healthP1, {angle: -5}, 0.3, {ease: FlxEase.expoOut});
+					FlxTween.tween(healthP2, {angle: 5}, 0.3, {ease: FlxEase.expoOut});
 				}
 			}
-		}
 
-		if (isGameover && FlxG.keys.justPressed.ENTER)
-		{
-			retry();
+			if (FlxG.keys.anyJustPressed(inputKeys) && !isGameover)
+			{
+				bosip.playAnim('throw');
+				throwSound.play(true);
+
+				var closestTimedBird:Bird = null;
+				birdList.forEachAlive(function(bird)
+				{
+					if (getRank(bird.time) == rankings.length)
+						return;
+					if (closestTimedBird == null)
+						closestTimedBird = bird;
+					if (Math.abs(conductor.getMil() - bird.time) < Math.abs(conductor.getMil() - closestTimedBird.time))
+						closestTimedBird = bird;
+				});
+
+				if (closestTimedBird != null)
+				{
+					var tempRank = getRank(closestTimedBird.time);
+					ratingSprite.add(new RatingSprite(tempRank));
+					rankList.push({time: closestTimedBird.time, difference: conductor.getMil() - closestTimedBird.time});
+					closestTimedBird.shouldRank = false;
+					trace(conductor.getMil() - closestTimedBird.time);
+					switch (tempRank)
+					{
+						case 0:
+							changeHealth(10);
+						case 2:
+							changeHealth(-5);
+						case 3:
+							changeHealth(-10);
+					}
+				}
+			}
+
+			if (isGameover && FlxG.keys.justPressed.ENTER)
+			{
+				retry();
+			}
 		}
 
 		// ! THIS IS DEBUG CODE
@@ -337,7 +359,10 @@ class PlayState extends FlxState
 
 	override function onFocusLost()
 	{
-		conductor.pause();
+		if (conductor != null)
+			conductor.pause();
+		else
+			countConductor.pause();
 		super.onFocusLost();
 	}
 
@@ -345,9 +370,15 @@ class PlayState extends FlxState
 	{
 		if (!isGameover)
 		{
-			conductor.unPause();
+			if (conductor != null)
+			{
+				conductor.unPause();
+				songInst.time = conductor.getMil();
+			}
+			else
+				countConductor.unPause();
 		}
-		songInst.time = conductor.getMil();
+
 		super.onFocus();
 	}
 }

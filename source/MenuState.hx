@@ -1,5 +1,6 @@
 package;
 
+import towsterFlxUtil.Fade;
 import flixel.system.FlxSound;
 import flixel.text.FlxBitmapText;
 import flixel.FlxBasic;
@@ -20,6 +21,8 @@ class MenuState extends FlxState
 
 	var confirmSound:FlxSound;
 	var scrollSound:FlxSound;
+
+	var fade:Fade;
 
 	// TODO make more if you have time
 	var buttonList:Array<String> = ['menu_story_mode', 'menu_credits', 'menu_options'];
@@ -51,6 +54,10 @@ class MenuState extends FlxState
 		}
 		buttons.members[0].playAnim('white');
 		buttons.members[0].screenCenter(X);
+
+		fade = new Fade(false);
+		add(fade);
+		fade.goOut();
 	}
 
 	override function update(elapsed:Float)
@@ -79,9 +86,10 @@ class MenuState extends FlxState
 			{
 				case 0:
 					StaticVar.nextSong = 'LoveBirds';
-					FlxG.switchState(new DialogueState());
+					FlxTween.tween(FlxG.sound.music, {volume: 0}, 2);
+					fade.goIn(new DialogueState());
 				case 2:
-					FlxG.switchState(new OptionsState());
+					fade.goIn(new OptionsState());
 			}
 		}
 
